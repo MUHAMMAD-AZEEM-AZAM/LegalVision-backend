@@ -145,11 +145,13 @@ class LegalAIAgent:
 
                 # Agent makes decision
                 response = self.aiml_client.chat.completions.create(
-                    model="gpt-4o-mini",
+                    model="gpt-5-2025-08-07",
                     messages=messages,
                     tools=tools_definition,
                     tool_choice="auto",
-                    temperature=0.3
+                    temperature=0.3,
+                    #  add fallback model
+                    fallback_model="gpt-4o-mini"
                 )
 
                 response_message = response.choices[0].message
@@ -224,9 +226,10 @@ class LegalAIAgent:
             })
 
             final_response_obj = self.aiml_client.chat.completions.create(
-                model="gpt-4o-mini",
+                model="gpt-5-2025-08-07",
                 messages=messages,
-                temperature=0.3
+                temperature=0.3,
+                fallback_model="gpt-4o-mini"
             )
 
             final_response = final_response_obj.choices[0].message.content
