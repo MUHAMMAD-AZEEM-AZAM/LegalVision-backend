@@ -180,7 +180,8 @@ async def chat_with_agent(
             prompt_parts.append(f"Additional context:\n{context}")
         
         if prompt_parts:
-            final_prompt = f"{'\n\n'.join(prompt_parts)}\n\nUser question: {message}"
+            separator = '\n\n'
+            final_prompt = f"{separator.join(prompt_parts)}\n\nUser question: {message}"
         else:
             final_prompt = message
         
