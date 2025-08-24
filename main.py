@@ -91,7 +91,7 @@ def get_current_user(authorization: Optional[str] = None) -> Dict[str, Any]:
         user_id: str = payload.get("sub")
         if user_id is None:
             raise HTTPException(status_code=401, detail="Invalid token payload")
-        if not db:
+        if db is None:
             raise HTTPException(status_code=503, detail="Database not available")
         user = db.users.find_one({"_id": ObjectId(user_id)})
         if not user:
@@ -204,7 +204,7 @@ async def health_check():
 # Auth endpoints
 @app.post("/register", response_model=AuthResponse)
 async def register(payload: RegisterRequest):
-    if not db:
+    if db is None:
         raise HTTPException(status_code=503, detail="Database not available")
     try:
         existing = db.users.find_one({"email": payload.email.lower()})
@@ -231,11 +231,11 @@ async def register(payload: RegisterRequest):
 
 @app.post("/login", response_model=AuthResponse)
 async def login(payload: LoginRequest):
-    if not db:
+    if db is None:
         raise HTTPException(status_code=503, detail="Database not available")
     try:
         user = db.users.find_one({"email": payload.email.lower().strip()})
-        if not user or not verify_password(payload.password, user.get("password_hash", "")):
+        if not user or not verify_password(payload.password, user.get("password", "")):
             raise HTTPException(status_code=401, detail="Invalid credentials")
         user_id = str(user["_id"])
         token = create_access_token({"sub": user_id})
@@ -351,7 +351,7 @@ async def chat_with_agent(
             final_prompt = message
         
         # Persist conversation: create or use existing chat
-        if not db:
+        if db is None:
             raise HTTPException(status_code=503, detail="Database not available")
 
         chat_obj_id: Optional[ObjectId] = None
@@ -437,7 +437,7 @@ async def clear_conversation():
 @app.get("/history", response_model=HistoryResponse)
 async def get_history(authorization: Optional[str] = Header(None)):
     user = get_current_user(authorization)
-    if not db:
+    if db is None:
         raise HTTPException(status_code=503, detail="Database not available")
     chats = list(db.chats.find({"user_id": user["_id"]}).sort("updated_at", -1))
     summaries = [
@@ -452,7 +452,7 @@ async def get_history(authorization: Optional[str] = Header(None)):
 @app.get("/history/{chat_id}")
 async def get_chat_by_id(chat_id: str, authorization: Optional[str] = Header(None)):
     user = get_current_user(authorization)
-    if not db:
+    if db is None:
         raise HTTPException(status_code=503, detail="Database not available")
     try:
         chat_obj_id = ObjectId(chat_id)
