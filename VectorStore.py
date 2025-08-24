@@ -44,4 +44,5 @@ class VectorStore:
         ]
 
         results = list(self.collection.aggregate(pipeline))
+        print(results)
         return results
