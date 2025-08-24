@@ -23,10 +23,6 @@ class LegalAIAgent:
         # Configuration
         self.MAX_ITERATIONS = 3
         self.MAX_HISTORY_PAIRS = 4
-        
-        # Model configuration with fallback
-        self.primary_model = "gpt-5-2025-08-07"  # Use the correct GPT-5 model
-        self.fallback_model = "gpt-4o-mini"  # Fallback model
 
         # Tool registry for the agent
         self.available_tools = {
@@ -87,17 +83,13 @@ class LegalAIAgent:
                 result['_id'] = str(result['_id'])
         return json.dumps(results, indent=2)
 
-    def _build_messages_with_history(self, user_query: str, external_history: list = None) -> list:
+    def _build_messages_with_history(self, user_query: str) -> list:
         """Build messages list with conversation history and current query"""
         # Use the system prompt from external file
         messages = [{"role": "system", "content": LEGAL_AI_SYSTEM_PROMPT}]
 
-        # Add external history if provided, otherwise use internal history
-        if external_history:
-            messages.extend(external_history)
-        else:
-            # Add conversation history
-            messages.extend(list(self.conversation_history))
+        # Add conversation history
+        messages.extend(list(self.conversation_history))
 
         # Add current user query
         messages.append({"role": "user", "content": user_query})
@@ -111,7 +103,7 @@ class LegalAIAgent:
 
         print(f"📚 History updated: {len(self.conversation_history)//2} conversation pairs stored")
 
-    def chat_with_agent(self, user_query: str, chat_history: list = None) -> str:
+    def chat_with_agent(self, user_query: str) -> str:
         """
         🎯 MAIN AGENT INTEGRATION POINT
         Agent decides whether and which tools to use with iterative capability
@@ -139,15 +131,9 @@ class LegalAIAgent:
 
         try:
             # Build initial messages with history
-            messages = self._build_messages_with_history(user_query, chat_history)
+            messages = self._build_messages_with_history(user_query)
 
-            # Calculate the number of previous exchanges
-            if chat_history:
-                previous_exchanges = len(chat_history) // 2
-            else:
-                previous_exchanges = len(self.conversation_history) // 2
-
-            print(f"🤖 Agent analyzing query: '{user_query}' (with {previous_exchanges} previous conversations)")
+            print(f"🤖 Agent analyzing query: '{user_query}' (with {len(self.conversation_history)//2} previous conversations)")
 
             # Iterative tool calling loop
             iteration = 0
@@ -159,7 +145,7 @@ class LegalAIAgent:
 
                 # Agent makes decision
                 response = self.aiml_client.chat.completions.create(
-                    model=self.fallback_model, # Use primary model
+                    model="gpt-4o-mini",
                     messages=messages,
                     tools=tools_definition,
                     tool_choice="auto",
@@ -238,7 +224,7 @@ class LegalAIAgent:
             })
 
             final_response_obj = self.aiml_client.chat.completions.create(
-                model=self.fallback_model, # Use fallback model
+                model="gpt-4o-mini",
                 messages=messages,
                 temperature=0.3
             )
