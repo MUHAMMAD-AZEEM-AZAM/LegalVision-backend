@@ -159,7 +159,7 @@ class LegalAIAgent:
 
                 # Agent makes decision
                 response = self.aiml_client.chat.completions.create(
-                    model=self.primary_model, # Use primary model
+                    model=self.fallback_model, # Use primary model
                     messages=messages,
                     tools=tools_definition,
                     tool_choice="auto",
