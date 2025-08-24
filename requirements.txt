@@ -10,3 +10,5 @@ pytesseract
 python-multipart
 PyPDF2
 python-docx
+passlib[bcrypt]
+python-jose[cryptography]
